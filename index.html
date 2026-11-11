@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cogno Valley | Cyberpunk Vision OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#050811;--panel:#0b1220;--panel2:#101c30;--line:rgba(90,220,255,.15);--cyan:#55edff;--blue:#557bff;--violet:#a77bff;--green:#52f5b4;--red:#ff5478;--amber:#ffc66d;--muted:#7f91ad}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:#e9f5ff;font-family:Manrope,sans-serif;min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;background:radial-gradient(ellipse at 12% 0%,rgba(38,120,255,.18),transparent 36%),radial-gradient(ellipse at 95% 18%,rgba(0,236,255,.10),transparent 30%),radial-gradient(ellipse at 50% 100%,rgba(115,65,255,.08),transparent 38%),linear-gradient(rgba(75,195,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(75,195,255,.035) 1px,transparent 1px);background-size:auto,auto,auto,38px 38px,38px 38px}
+body:after{content:"";position:fixed;inset:0;z-index:20;pointer-events:none;opacity:.10;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.035) 4px)}
+#particleCanvas{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.65}
+.mono{font-family:"DM Mono",monospace}.orbit{font-family:Orbitron,sans-serif}.panel{background:linear-gradient(145deg,rgba(13,24,42,.94),rgba(7,13,25,.96));border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035);position:relative;overflow:hidden}
+.panel:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(85,237,255,.035),transparent 35%,transparent 70%,rgba(167,123,255,.025))}
+.eyebrow{font-size:9px;letter-spacing:.2em;font-weight:800;color:#7890ad;text-transform:uppercase}.muted{color:var(--muted)}
+.brand{background:linear-gradient(135deg,#5ff4ff,#547aff 58%,#a77bff);box-shadow:0 0 28px rgba(85,237,255,.25)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(82,245,180,.7);animation:pulse 1.7s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(82,245,180,0)}100%{box-shadow:0 0 0 0 rgba(82,245,180,0)}}
+@keyframes scanline{0%{transform:translateY(-120%);opacity:0}10%{opacity:.8}90%{opacity:.8}100%{transform:translateY(560%);opacity:0}}
+@keyframes reveal{from{opacity:0;transform:translateY(15px) scale(.99);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes neonPulse{0%,100%{box-shadow:0 0 8px rgba(85,237,255,.12),inset 0 0 8px rgba(85,237,255,.03)}50%{box-shadow:0 0 22px rgba(85,237,255,.25),inset 0 0 14px rgba(85,237,255,.07)}}
+@keyframes radar{to{transform:rotate(360deg)}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes glitch{0%,94%,100%{transform:translate(0)}95%{transform:translate(1px,-1px)}97%{transform:translate(-2px,1px)}}
+.enter{animation:reveal .65s cubic-bezier(.2,.8,.2,1) both}.d1{animation-delay:.06s}.d2{animation-delay:.13s}.d3{animation-delay:.2s}.d4{animation-delay:.27s}
+.feed{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#0b1a2b,#02060c 70%);isolation:isolate;min-height:230px}
+.feed:after{content:"";position:absolute;inset:0 0 auto;height:24%;background:linear-gradient(transparent,rgba(85,237,255,.15),transparent);animation:scanline 4.8s linear infinite;pointer-events:none;z-index:3}
+.feed-grid{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(rgba(85,237,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(85,237,255,.08) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent)}
+.corner{position:absolute;width:20px;height:20px;border-color:var(--cyan);border-style:solid;z-index:4;opacity:.9}.tl{top:12px;left:12px;border-width:2px 0 0 2px}.tr{top:12px;right:12px;border-width:2px 2px 0 0}.bl{bottom:12px;left:12px;border-width:0 0 2px 2px}.br{bottom:12px;right:12px;border-width:0 2px 2px 0}
+.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;transition:.22s;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.2);box-shadow:0 8px 25px rgba(85,237,255,.12)}.btn-primary{background:linear-gradient(110deg,#246bff,#12bcd6);color:#fff;border:0;box-shadow:0 8px 24px rgba(42,143,255,.22)}.btn-quiet{background:rgba(255,255,255,.045);color:#dcecff}.btn-danger{background:rgba(255,84,120,.12);border-color:rgba(255,84,120,.3);color:#ff9bad}
+.navtab{padding:10px 14px;border:1px solid transparent;border-radius:10px;color:#8194b0;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;transition:.25s;white-space:nowrap}.navtab:hover{color:#dffaff;background:rgba(85,237,255,.06)}.navtab.active{color:#aaf7ff;border-color:rgba(85,237,255,.3);background:linear-gradient(120deg,rgba(85,237,255,.12),rgba(85,123,255,.08));box-shadow:0 0 20px rgba(85,237,255,.08)}
+.metric{transition:transform .25s,border-color .25s}.metric:hover{transform:translateY(-4px);border-color:rgba(85,237,255,.4);animation:neonPulse 2s infinite}.metric-icon{width:34px;height:34px;border-radius:10px;background:rgba(85,237,255,.1);color:var(--cyan);display:grid;place-items:center;font-size:17px}
+.bar-track{height:7px;border-radius:99px;background:#1a2a40;overflow:hidden}.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#557bff,#55edff);transition:width .65s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 14px rgba(85,237,255,.4)}
+.log-item{padding:11px 0;border-bottom:1px solid rgba(148,163,184,.09);animation:reveal .3s}.log-tag{font-size:8px;font-weight:800;letter-spacing:.1em;padding:4px 7px;border-radius:5px;background:rgba(255,255,255,.07)}
+.range{accent-color:var(--cyan);width:100%}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.view{display:none}.view.active{display:block;animation:reveal .45s ease both}
+.radar{width:120px;height:120px;border-radius:50%;border:1px solid rgba(85,237,255,.35);position:relative;background:repeating-radial-gradient(circle,transparent 0 19px,rgba(85,237,255,.13) 20px 21px),linear-gradient(90deg,transparent 49.5%,rgba(85,237,255,.18) 50%,transparent 50.5%),linear-gradient(transparent 49.5%,rgba(85,237,255,.18) 50%,transparent 50.5%);overflow:hidden}
+.radar:before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 75%,rgba(85,237,255,.25));animation:radar 4s linear infinite}
+.radar:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--red);top:34%;left:64%;box-shadow:0 0 12px var(--red),0 0 25px var(--red)}
+.camera-placeholder{background:radial-gradient(ellipse at 50% 50%,rgba(40,90,130,.2),transparent 65%),#030812}
+.cam-chip{border:1px solid rgba(85,237,255,.2);background:rgba(85,237,255,.07);color:#9df4ff}
+@media(max-width:900px){.desktop-side{display:none}.app-grid{grid-template-columns:1fr!important}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:560px){.main-pad{padding:15px!important}.feed{min-height:210px}.header-inner{padding:0 14px}.navtab{padding:9px 10px;font-size:9px}.metric-grid{gap:9px!important}.metric{padding:13px!important}}
+/* ===== TRACK B: incident response ===== */
+.alert-banner{display:none;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;border-radius:14px;border:1px solid rgba(255,84,120,.55);background:linear-gradient(100deg,rgba(255,84,120,.24),rgba(255,84,120,.07));animation:bannerPulse 1.6s ease-in-out infinite}
+.alert-banner.show{display:flex}
+@keyframes bannerPulse{0%,100%{box-shadow:0 0 12px rgba(255,84,120,.15)}50%{box-shadow:0 0 34px rgba(255,84,120,.45)}}
+.ab-icon{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(255,84,120,.25);color:#ff8ca6;font-weight:800}
+.ab-title{font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:.12em;color:#ffb3c3}
+.ab-text{font-size:11px;color:#ffd6de;margin-top:3px}
+.inc-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#9fb2cc;font-size:9px;font-weight:800;letter-spacing:.12em;cursor:pointer;transition:.2s}
+.inc-pill:hover{filter:brightness(1.25)}
+.inc-pill i{width:7px;height:7px;border-radius:50%;background:#52627a;display:inline-block}
+.inc-pill.open{color:#ffd48a;border-color:rgba(255,198,109,.35);background:rgba(255,198,109,.07)}.inc-pill.open i{background:var(--amber)}
+.inc-pill.hot{color:#ff9db3;border-color:rgba(255,84,120,.5);background:rgba(255,84,120,.1);animation:pulseRed 1.4s infinite}.inc-pill.hot i{background:var(--red)}
+@keyframes pulseRed{0%,100%{box-shadow:0 0 0 0 rgba(255,84,120,.0)}50%{box-shadow:0 0 16px rgba(255,84,120,.35)}}
+.sev-tag{display:inline-block;font-size:8px;font-weight:800;letter-spacing:.14em;padding:4px 8px;border-radius:6px;text-transform:uppercase}
+.sev-tag.s-critical{background:rgba(255,84,120,.16);color:#ff8ca6;border:1px solid rgba(255,84,120,.45)}
+.sev-tag.s-warning{background:rgba(255,198,109,.13);color:#ffd48a;border:1px solid rgba(255,198,109,.4)}
+.sev-tag.s-info{background:rgba(85,237,255,.1);color:#8ff3ff;border:1px solid rgba(85,237,255,.35)}
+.st-pill{display:inline-block;font-size:8px;font-weight:800;letter-spacing:.12em;padding:3px 8px;border-radius:99px;text-transform:uppercase;background:rgba(255,255,255,.06);color:#9fb2cc}
+.st-pill.st-open{background:rgba(255,84,120,.12);color:#ff9db3}.st-pill.st-dispatched{background:rgba(85,123,255,.16);color:#9db6ff}
+.st-pill.st-resolved{background:rgba(82,245,180,.12);color:#7cf5c6}.st-pill.st-dismissed{background:rgba(148,163,184,.12);color:#9fb2cc}
+.inc-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.kpi{padding:14px 16px}.kpi .v{font-family:Orbitron,sans-serif;font-size:26px;color:#fff;margin-top:6px}
+.kpi.k-crit .v{color:#ff8ca6}.kpi.k-disp .v{color:#9db6ff}.kpi.k-ok .v{color:#7cf5c6}
+.inc-grid{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:14px;align-items:start}
+.inc-cols{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}
+.chip{padding:6px 11px;border-radius:99px;border:1px solid var(--line);font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8194b0;background:transparent;cursor:pointer;transition:.2s}
+.chip:hover{color:#dffaff}.chip.active{color:#aaf7ff;border-color:rgba(85,237,255,.4);background:rgba(85,237,255,.08)}
+.inc-list{max-height:640px;overflow-y:auto;padding:10px}
+.inc-card{display:block;width:100%;text-align:left;padding:11px 12px 11px 14px;margin-bottom:8px;border-radius:12px;border:1px solid rgba(148,163,184,.14);border-left:3px solid #52627a;background:rgba(255,255,255,.025);color:inherit;cursor:pointer;transition:.2s;font-family:inherit}
+.inc-card:hover{background:rgba(85,237,255,.05);transform:translateX(2px)}
+.inc-card.selected{border-color:rgba(85,237,255,.5);background:rgba(85,237,255,.08);box-shadow:0 0 18px rgba(85,237,255,.12)}
+.inc-card.s-critical{border-left-color:var(--red)}.inc-card.s-warning{border-left-color:var(--amber)}.inc-card.s-info{border-left-color:var(--cyan)}
+.inc-card.closed{opacity:.6}
+.ic-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}.ic-top .mono{font-size:9px;color:#6f819c}.ic-top .grow{flex:1}
+.ic-title{font-size:12px;font-weight:700;color:#e9f5ff}.ic-meta{font-size:9px;color:#7f91ad;margin-top:4px}.ic-foot{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.cleared-tag{font-size:8px;font-weight:800;letter-spacing:.1em;color:#7cf5c6}
+.inc-empty{padding:60px 20px;text-align:center;color:#6f819c;font-size:12px}
+.inc-empty b{display:block;font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:.14em;color:#9fb2cc;margin-bottom:8px}
+.inc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.inc-head h3{font-family:Orbitron,sans-serif;font-size:13px;letter-spacing:.06em;color:#fff;margin:0;flex:1;min-width:180px}
+.inc-body{padding:16px}
+.viewer{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#02060c;border:1px solid var(--line)}
+.viewer img{width:100%;height:100%;object-fit:contain;display:block}
+.viewer-badge{position:absolute;top:10px;left:10px;font-size:8px;font-weight:800;letter-spacing:.14em;padding:4px 8px;border-radius:5px;background:rgba(2,6,12,.75);color:#9df4ff;border:1px solid rgba(85,237,255,.3)}
+.viewer-badge.replay{color:#ff9db3;border-color:rgba(255,84,120,.5)}
+.viewer-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08)}.viewer-progress i{display:block;height:100%;width:0;background:var(--cyan)}
+.viewer-controls{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}.viewer-controls .note{font-size:9px;color:#6f819c;margin-left:auto}
+.btn-xs{padding:6px 9px;font-size:9px;border-radius:8px}
+.btn.on{border-color:rgba(85,237,255,.5);background:rgba(85,237,255,.1);color:#aaf7ff}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.fact{padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(148,163,184,.1)}
+.fact .k{font-size:8px;letter-spacing:.16em;font-weight:800;color:#7890ad;text-transform:uppercase}.fact .v{font-size:12px;font-weight:700;color:#e9f5ff;margin-top:4px}
+.unit-row{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-bottom:6px;border:1px solid rgba(148,163,184,.12);border-radius:10px;background:rgba(255,255,255,.02)}
+.unit-row.busy{opacity:.55}
+.unit-dot{width:9px;height:9px;border-radius:50%;flex:none}.t-security{background:var(--cyan)}.t-medical{background:var(--green)}.t-response{background:var(--violet)}
+.unit-main{flex:1;min-width:0}.unit-name{font-size:11px;font-weight:700;color:#e9f5ff}.unit-sub{font-size:9px;color:#7f91ad;margin-top:2px}
+.unit-state{font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7cf5c6}.unit-state.en-route{color:#9db6ff}.unit-state.on-scene{color:#ffd48a}
+.assign-card{padding:14px;border-radius:12px;border:1px solid rgba(85,123,255,.4);background:linear-gradient(135deg,rgba(85,123,255,.14),rgba(85,237,255,.05))}
+.assign-card .big{font-family:Orbitron,sans-serif;font-size:13px;color:#fff;margin:6px 0 2px}
+.eta-row{display:flex;justify-content:space-between;align-items:center;margin:12px 0 7px}.eta-row .eta{font-family:Orbitron,sans-serif;font-size:18px;color:#9df4ff}
+.eta-track{height:6px;border-radius:99px;background:#1a2a40;overflow:hidden}.eta-track i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#557bff,#55edff);transition:width .5s linear}
+.note-line{font-size:11px;color:#9fb2cc;line-height:1.5}
+.map-box{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#040a14}.map-box svg{width:100%;height:auto;display:block}
+.inc-actions{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 16px}
+.inc-mini{display:flex;gap:9px;align-items:center;width:100%;text-align:left;padding:9px 0;border:0;border-bottom:1px solid rgba(148,163,184,.09);background:transparent;color:inherit;cursor:pointer;font-family:inherit}
+.inc-mini:hover .ic-title{color:#aaf7ff}
+@media(max-width:1100px){.inc-grid{grid-template-columns:1fr}.inc-list{max-height:380px}}
+@media(max-width:900px){.inc-cols{grid-template-columns:1fr}.inc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<canvas id="particleCanvas"></canvas>
+<header class="sticky top-0 z-30 border-b border-cyan-300/10 bg-[#060b15]/90 backdrop-blur-xl">
+ <div class="header-inner max-w-[1600px] mx-auto h-[72px] px-5 lg:px-8 flex items-center justify-between gap-3">
+  <div class="flex items-center gap-3 min-w-0">
+   <div class="brand w-10 h-10 rounded-xl grid place-items-center text-[#06101b] font-black orbit text-xs">CV<span class="text-[8px]"></span></div>
+   <div class="min-w-0"><div class="orbit text-[12px] sm:text-sm font-bold tracking-[.16em] text-white">COGNO <span class="text-cyan-300">VALLEY</span></div><div class="eyebrow mt-1">Autonomous vision operating system</div></div>
+  </div>
+  <div class="flex items-center gap-2 sm:gap-3">
+   <div class="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/[.025] mono text-[9px] text-slate-500">NODE <span class="text-cyan-300">CV-01</span> / LOCAL</div>
+   <button id="incident-pill" class="inc-pill" onclick="openLatestIncident()" aria-label="Open incident response"><i></i><span id="incident-pill-text">NO OPEN INCIDENTS</span></button>
+   <div id="system-status-indicator" class="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-300/20 bg-emerald-300/[.06] text-emerald-300 text-[9px] font-extrabold tracking-widest"><span class="live-dot"></span> SCANNING ACTIVE</div>
+   <div class="w-9 h-9 rounded-full border border-cyan-300/20 bg-gradient-to-br from-slate-700 to-slate-950 grid place-items-center text-[10px] font-bold">OP</div>
+  </div>
+ </div>
+</header>
+
+<div class="app-grid max-w-[1600px] mx-auto grid grid-cols-[178px_minmax(0,1fr)] gap-6 px-5 lg:px-8">
+ <aside class="desktop-side pt-8">
+  <div class="eyebrow px-3 mb-3">Navigation</div>
+  <a href="#command" class="block navtab active w-full text-left mb-1" data-tab="command">◈ &nbsp; Command</a>
+  <a href="#cameras" class="block navtab w-full text-left mb-1" data-tab="cameras">▣ &nbsp; Cameras</a>
+  <a href="#analytics" class="block navtab w-full text-left mb-1" data-tab="analytics">⌁ &nbsp; Analytics</a>
+  <a href="#incidents" class="block navtab w-full text-left mb-1" data-tab="incidents">⚑ &nbsp; Incidents</a>
+   <a href="#audit" class="block navtab w-full text-left mb-1" data-tab="audit">≋ &nbsp; Audit trail</a>
+  <div class="mt-9 px-3"><div class="eyebrow mb-3">Infrastructure</div><div class="flex items-center gap-2 text-[10px] text-slate-400 mb-3"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Vision engine <span class="ml-auto text-emerald-300 mono">ON</span></div><div class="flex items-center gap-2 text-[10px] text-slate-400 mb-3"><span class="w-1.5 h-1.5 rounded-full bg-cyan-300"></span> Metrics socket <span class="ml-auto text-cyan-300 mono">WS</span></div><div class="flex items-center gap-2 text-[10px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span> Event logger <span class="ml-auto text-violet-300 mono">READY</span></div></div>
+  <div class="mt-9 p-3 rounded-xl border border-cyan-300/10 bg-cyan-300/[.025]"><div class="eyebrow text-cyan-200 mb-2">Operator briefing</div><p class="text-[10px] leading-relaxed text-slate-500">Monitor spatial occupancy. Respond to threshold events and review system activity.</p></div>
+  <div class="mt-8 px-3 mono text-[8px] text-slate-700">CV OS // BUILD 2.0.0</div>
+ </aside>
+
+ <main class="main-pad min-w-0 py-7">
+  <div id="alert-banner" class="alert-banner" role="alert" aria-live="assertive">
+   <div class="ab-icon">!</div>
+   <div style="flex:1;min-width:200px"><div class="ab-title">CONGESTION ALERT</div><div id="banner-text" class="ab-text">Zone A has reached its capacity limit.</div></div>
+   <button class="btn btn-danger" onclick="openLatestIncident()">Review incident ↗</button>
+  </div>
+
+  <div class="flex flex-wrap justify-between items-end gap-4 mb-5 enter">
+   <div><div class="eyebrow mb-2">Vision intelligence / Operations</div><h1 class="orbit text-xl sm:text-2xl font-bold tracking-wide text-white">MISSION <span class="text-cyan-300">CONTROL</span></h1><p class="text-xs text-slate-500 mt-2">Real-time situational awareness · spatial analytics · event response</p></div>
+   <div class="text-right"><div class="eyebrow">System local time</div><div id="clock" class="mono text-sm text-cyan-100 mt-1">--:--:--</div></div>
+  </div>
+
+  <div class="flex gap-1.5 overflow-x-auto pb-4 mb-1">
+   <button class="navtab active" data-tab="command">◈ Command center</button>
+   <button class="navtab" data-tab="cameras">▣ Camera matrix</button>
+   <button class="navtab" data-tab="analytics">⌁ Analytics lab</button>
+   <button class="navtab" data-tab="incidents">⚑ Incident response</button>
+   <button class="navtab" data-tab="audit">≋ Event intelligence</button>
+  </div>
+
+  <section id="view-command" class="view active">
+   <div class="metric-grid grid grid-cols-4 gap-3 mb-4">
+    <article class="panel metric p-4 enter d1"><div class="flex justify-between items-center"><span class="eyebrow">Live occupancy</span><span class="metric-icon">◎</span></div><div class="mt-4 flex items-end gap-2"><span id="headcount-display" class="orbit text-3xl text-white">0</span><span class="text-[10px] text-slate-500 mb-1">people</span></div><div class="text-[9px] text-emerald-300 mt-2">● LIVE COUNTER</div></article>
+    <article class="panel metric p-4 enter d2"><div class="flex justify-between items-center"><span class="eyebrow">Zone capacity</span><span class="metric-icon">▤</span></div><div class="mt-4 flex items-end gap-2"><span id="capacity-display" class="orbit text-3xl text-white">10</span><span class="text-[10px] text-slate-500 mb-1">max people</span></div><div class="text-[9px] text-blue-300 mt-2">● OPERATOR CONFIGURED</div></article>
+    <article class="panel metric p-4 enter d3"><div class="flex justify-between items-center"><span class="eyebrow">Utilization</span><span class="metric-icon">◔</span></div><div class="mt-4"><span id="utilization-display" class="orbit text-3xl text-white">0%</span></div><div class="text-[9px] text-slate-500 mt-2">CAPACITY CONSUMPTION</div></article>
+    <article class="panel metric p-4 enter d4"><div class="flex justify-between items-center"><span class="eyebrow">System health</span><span class="metric-icon">✧</span></div><div class="mt-4"><span id="health-display" class="orbit text-2xl text-emerald-300">GOOD</span></div><div class="text-[9px] text-emerald-300 mt-2">● MONITORING SERVICES</div></article>
+   </div>
+
+   <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,1.65fr)_minmax(290px,.8fr)] gap-4">
+    <div class="space-y-4 min-w-0">
+     <section class="panel enter d2">
+      <div class="px-4 py-3 border-b border-white/[.06] flex flex-wrap justify-between items-center gap-2"><div><div class="flex items-center gap-2"><span class="live-dot"></span><h2 class="orbit text-[10px] tracking-widest text-white">PRIMARY VISUAL FEED</h2></div><div class="eyebrow mt-1">CAM-01 / CORRIDOR A / 1080P</div></div><div class="flex gap-2"><span class="cam-chip rounded-md px-2 py-1 text-[8px] mono">STREAM ACTIVE</span><span class="rounded-md px-2 py-1 text-[8px] mono bg-red-400/10 text-red-300">REC ●</span></div></div>
+      <div class="feed aspect-video"><img id="video-stream" src="http://localhost:8000/video_feed" alt="Live camera stream" class="absolute inset-0 w-full h-full object-contain z-0" onerror="this.style.opacity='.08'"><div class="feed-grid"></div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><div class="absolute top-5 left-7 z-[4] mono text-[9px] text-cyan-100/80">CAM_01 // REC ●</div><div id="feed-time" class="absolute top-5 right-7 z-[4] mono text-[9px] text-cyan-100/80">00:00:00</div><div class="absolute bottom-5 left-7 z-[4] mono text-[9px] text-cyan-100/70">ZONE A / ENTRY CORRIDOR</div><div id="perf-display" class="absolute bottom-5 right-7 z-[4] mono text-[9px] text-cyan-100/70">AI VISION ACTIVE</div></div>
+     </section>
+     <section class="panel p-4 enter d3">
+      <div class="flex justify-between items-center gap-2 mb-4"><div><h2 class="orbit text-[10px] tracking-widest text-white">OPERATOR CONTROL DECK</h2><p class="eyebrow mt-1">Detection configuration / Zone A</p></div><span class="mono text-[8px] text-slate-600">CTRL-01</span></div>
+      <div class="flex flex-wrap items-end gap-4">
+       <div class="flex-1 min-w-[135px]"><div class="eyebrow mb-2">AI scanning engine</div><button id="btn-scan" class="btn btn-primary w-full" onclick="toggleApi('/api/toggle_scan',this)">Ⅱ Pause scan</button></div>
+       <div class="flex-1 min-w-[135px]"><div class="eyebrow mb-2">Vision overlays</div><button id="btn-overlay" class="btn btn-quiet w-full" onclick="toggleApi('/api/toggle_overlay',this)">◉ Hide overlays</button></div>
+       <div class="flex-[1.2] min-w-[160px]"><div class="flex justify-between mb-2"><label class="eyebrow" for="capacity-slider">Capacity threshold</label><span id="slider-val" class="mono text-xs text-cyan-200">10</span></div><input id="capacity-slider" class="range" type="range" min="1" max="30" value="10" oninput="document.getElementById('slider-val').textContent=this.value" onchange="updateCapacity(this.value)"><div class="flex justify-between mono text-[8px] text-slate-600 mt-1"><span>01 MIN</span><span>30 MAX</span></div></div>
+       <div><div class="eyebrow mb-2">Audit export</div><button onclick="exportLog()" class="btn btn-quiet w-full">↓ Export</button></div>
+      </div>
+     </section>
+     <section class="panel p-4 enter d4"><div class="flex justify-between items-center mb-3"><div><h2 class="orbit text-[10px] tracking-widest text-white">OCCUPANCY WAVEFORM</h2><p class="eyebrow mt-1">Rolling live headcount</p></div><span class="cam-chip rounded-md px-2 py-1 text-[8px] mono">REALTIME</span></div><div class="h-44"><canvas id="occupancyChart"></canvas></div></section>
+    </div>
+    <div class="space-y-4 min-w-0">
+     <section class="panel p-5 enter d2"><div class="flex justify-between items-center mb-4"><div><h2 class="orbit text-[10px] tracking-widest text-white">ZONE LOAD</h2><p class="eyebrow mt-1">Current capacity state</p></div><div class="radar"></div></div><div class="flex items-end gap-2"><span id="occupancy-big" class="orbit text-5xl text-white">0</span><span class="text-slate-500 text-sm mb-1">/ <span id="capacity-big">10</span> persons</span></div><div class="bar-track my-4"><div id="capacity-bar" class="bar-fill" style="width:0%"></div></div><div class="flex justify-between text-[9px] font-extrabold"><span id="status-label" class="text-cyan-300">NORMAL FLOW</span><span id="percentage-label" class="mono text-slate-500">0% FULL</span></div><div class="grid grid-cols-2 gap-3 border-t border-white/[.06] mt-4 pt-4"><div><div class="eyebrow">Threshold</div><div id="threshold-value" class="text-xs font-bold text-white mt-1">10 people</div></div><div><div class="eyebrow">Zone state</div><div id="zone-state" class="text-xs font-bold text-emerald-300 mt-1">Within limit</div></div></div></section>
+     <section class="panel overflow-hidden enter d3"><div class="px-4 py-3 border-b border-white/[.06]"><h2 class="orbit text-[10px] tracking-widest text-white">LIVE EVENT STREAM</h2><p class="eyebrow mt-1">Latest system activity</p></div><div id="event-log" class="px-4 max-h-[345px] overflow-y-auto"><div class="py-5 text-xs text-slate-500">Awaiting system events…</div></div><button class="w-full text-center py-3 text-[9px] tracking-widest font-bold text-cyan-300 hover:bg-cyan-300/[.05]" onclick="switchView('audit')">OPEN EVENT INTELLIGENCE ↗</button></section>
+     <section class="panel overflow-hidden enter d3"><div class="px-4 py-3 border-b border-white/[.06] flex justify-between items-center"><div><h2 class="orbit text-[10px] tracking-widest text-white">ACTIVE INCIDENTS</h2><p class="eyebrow mt-1">Priority response queue</p></div><span id="mini-count" class="cam-chip rounded-md px-2 py-1 text-[8px] mono">0 OPEN</span></div><div id="mini-incidents" class="px-4"><div class="py-5 text-xs text-slate-500">No active incidents. A capacity breach will appear here automatically.</div></div><button class="w-full py-3 text-center mono text-[9px] tracking-widest text-cyan-300 border-t border-white/[.06]" style="background:transparent;cursor:pointer" onclick="openLatestIncident()">OPEN INCIDENT RESPONSE ↗</button></section>
+     <section class="rounded-xl border border-violet-300/15 bg-gradient-to-br from-violet-400/[.09] to-cyan-300/[.04] p-4"><div class="text-[10px] font-extrabold tracking-widest text-violet-200">✦ AI SITUATIONAL NOTE</div><p class="text-[10px] leading-relaxed text-slate-400 mt-2">Maintain visibility of the primary feed and zone load. Capacity events are automatically captured in the audit stream.</p></section>
+    </div>
+   </div>
+  </section>
+
+  <section id="view-cameras" class="view">
+   <div class="flex flex-wrap justify-between items-end gap-3 mb-4"><div><div class="eyebrow mb-2">Spatial awareness / Camera network</div><h2 class="orbit text-lg text-white">CAMERA <span class="text-cyan-300">MATRIX</span></h2><p class="text-[11px] text-slate-500 mt-2">Multi-zone monitoring overview. Only CAM-01 is connected to the current backend stream.</p></div><span class="cam-chip rounded-lg px-3 py-2 mono text-[9px]">01 / 04 STREAMS CONNECTED</span></div>
+   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <section class="panel"><div class="px-4 py-3 flex justify-between border-b border-white/[.06]"><div><div class="orbit text-[10px] text-white">CAM-01 / CORRIDOR A</div><div class="eyebrow mt-1">Primary stream</div></div><span class="text-[8px] text-emerald-300 mono">● CONNECTED</span></div><div class="feed aspect-video"><img src="http://localhost:8000/video_feed" alt="Primary camera stream" class="absolute inset-0 w-full h-full object-contain z-0" onerror="this.style.opacity='.08'"><div class="feed-grid"></div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><div class="absolute bottom-4 left-5 z-[4] mono text-[9px] text-cyan-100">LIVE / BACKEND FEED</div></div></section>
+    <section class="panel"><div class="px-4 py-3 flex justify-between border-b border-white/[.06]"><div><div class="orbit text-[10px] text-white">CAM-02 / MAIN ENTRANCE</div><div class="eyebrow mt-1">Secondary zone</div></div><span class="text-[8px] text-amber-300 mono">○ NOT CONFIGURED</span></div><div class="feed camera-placeholder aspect-video flex items-center justify-center"><div class="text-center relative z-[4]"><div class="text-3xl text-cyan-300/50 mb-2">⌖</div><div class="orbit text-[9px] tracking-widest text-slate-400">AWAITING CAMERA LINK</div><div class="mono text-[8px] text-slate-600 mt-2">ENDPOINT NOT PROVIDED</div></div><div class="feed-grid"></div></div></section>
+    <section class="panel"><div class="px-4 py-3 flex justify-between border-b border-white/[.06]"><div><div class="orbit text-[10px] text-white">CAM-03 / LOBBY</div><div class="eyebrow mt-1">Public area</div></div><span class="text-[8px] text-amber-300 mono">○ NOT CONFIGURED</span></div><div class="feed camera-placeholder aspect-video flex items-center justify-center"><div class="text-center relative z-[4]"><div class="text-3xl text-violet-300/50 mb-2">⌖</div><div class="orbit text-[9px] tracking-widest text-slate-400">AWAITING CAMERA LINK</div><div class="mono text-[8px] text-slate-600 mt-2">ENDPOINT NOT PROVIDED</div></div><div class="feed-grid"></div></div></section>
+    <section class="panel"><div class="px-4 py-3 flex justify-between border-b border-white/[.06]"><div><div class="orbit text-[10px] text-white">CAM-04 / EXIT GATE</div><div class="eyebrow mt-1">Restricted zone</div></div><span class="text-[8px] text-amber-300 mono">○ NOT CONFIGURED</span></div><div class="feed camera-placeholder aspect-video flex items-center justify-center"><div class="text-center relative z-[4]"><div class="text-3xl text-blue-300/50 mb-2">⌖</div><div class="orbit text-[9px] tracking-widest text-slate-400">AWAITING CAMERA LINK</div><div class="mono text-[8px] text-slate-600 mt-2">ENDPOINT NOT PROVIDED</div></div><div class="feed-grid"></div></div></section>
+   </div>
+   <div class="panel p-4 mt-4 flex flex-wrap items-center justify-between gap-3"><div><div class="eyebrow">Network topology</div><div class="text-xs text-slate-300 mt-1">1 active feed · 3 camera slots reserved</div></div><div class="flex gap-2 text-[9px] mono"><span class="text-emerald-300">● CONNECTED</span><span class="text-amber-300">○ RESERVED</span></div></div>
+  </section>
+
+  <section id="view-analytics" class="view">
+   <div class="mb-4"><div class="eyebrow mb-2">Intelligence / Data visualization</div><h2 class="orbit text-lg text-white">ANALYTICS <span class="text-cyan-300">LAB</span></h2><p class="text-[11px] text-slate-500 mt-2">Live occupancy intelligence and threshold monitoring.</p></div>
+   <div class="metric-grid grid grid-cols-3 gap-3 mb-4">
+    <div class="panel metric p-4"><div class="eyebrow">Current headcount</div><div id="analytics-headcount" class="orbit text-3xl text-white mt-3">0</div><div class="text-[9px] text-cyan-300 mt-2">LIVE VALUE</div></div>
+    <div class="panel metric p-4"><div class="eyebrow">Zone capacity</div><div id="analytics-capacity" class="orbit text-3xl text-white mt-3">10</div><div class="text-[9px] text-blue-300 mt-2">CONFIGURED LIMIT</div></div>
+    <div class="panel metric p-4"><div class="eyebrow">Utilization ratio</div><div id="analytics-utilization" class="orbit text-3xl text-white mt-3">0%</div><div class="text-[9px] text-violet-300 mt-2">CAPACITY LOAD</div></div>
+   </div>
+   <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.6fr)_minmax(260px,.7fr)] gap-4">
+    <section class="panel p-5"><div class="flex justify-between items-center mb-4"><div><h3 class="orbit text-[10px] text-white tracking-widest">LIVE OCCUPANCY HISTORY</h3><p class="eyebrow mt-1">Rolling data points from WebSocket</p></div><span class="cam-chip rounded px-2 py-1 mono text-[8px]">LIVE</span></div><div class="h-[310px]"><canvas id="analyticsChart"></canvas></div></section>
+    <section class="panel p-5"><div class="orbit text-[10px] text-white tracking-widest mb-4">CAPACITY THRESHOLD</div><div class="flex justify-center py-4"><div class="radar" style="width:155px;height:155px"></div></div><div class="bar-track my-4"><div id="analytics-bar" class="bar-fill" style="width:0%"></div></div><div class="flex justify-between text-[9px]"><span id="analytics-status" class="text-cyan-300">NORMAL FLOW</span><span id="analytics-percent" class="mono text-slate-500">0%</span></div><div class="mt-5 border-t border-white/[.06] pt-4"><div class="eyebrow">Operator control</div><button class="btn btn-primary w-full mt-3" onclick="switchView('command')">↗ Return to command deck</button></div></section>
+   </div>
+  </section>
+
+  <section id="view-incidents" class="view">
+   <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+    <div><div class="eyebrow mb-2">Operations / Response</div><h2 class="orbit text-lg text-white">INCIDENT <span class="text-cyan-300">RESPONSE</span></h2><p class="text-[11px] text-slate-500 mt-2">Capacity breaches become incidents with evidence. Review the replay, then dispatch the nearest unit.</p></div>
+    <div class="flex gap-2 flex-wrap"><button class="btn btn-quiet" onclick="exportIncidents()">↓ Export incident report</button><button class="btn btn-quiet" onclick="resetIncidents()">⟲ Reset demo data</button></div>
+   </div>
+   <div class="inc-kpis">
+    <div class="panel kpi"><div class="eyebrow">Open incidents</div><div id="kpi-open" class="v">0</div></div>
+    <div class="panel kpi k-crit"><div class="eyebrow">Critical open</div><div id="kpi-critical" class="v">0</div></div>
+    <div class="panel kpi k-disp"><div class="eyebrow">Units dispatched</div><div id="kpi-dispatched" class="v">0</div></div>
+    <div class="panel kpi k-ok"><div class="eyebrow">Closed</div><div id="kpi-closed" class="v">0</div></div>
+   </div>
+   <div class="inc-grid">
+    <section class="panel">
+     <div class="px-4 py-3 border-b border-white/[.06]"><div class="orbit text-[10px] text-white tracking-widest">PRIORITY INCIDENT QUEUE</div><div class="eyebrow mt-1">Critical → Warning → Info</div>
+      <div class="flex gap-2 mt-3 flex-wrap"><button id="chip-active" class="chip active" onclick="setIncFilter('active')">Active</button><button id="chip-closed" class="chip" onclick="setIncFilter('closed')">Closed</button><button id="chip-all" class="chip" onclick="setIncFilter('all')">All</button></div></div>
+     <div id="incident-list" class="inc-list"></div>
+    </section>
+    <section class="panel">
+     <div id="incident-empty" class="inc-empty"><b>NO INCIDENT SELECTED</b>Select an incident from the queue to review its evidence and dispatch a response unit.</div>
+     <div id="incident-detail" style="display:none">
+      <div class="inc-head"><span id="d-sev" class="sev-tag s-info">Info</span><h3 id="d-title">—</h3><span id="d-id" class="mono" style="font-size:10px;color:#7f91ad"></span><span id="d-status" class="st-pill">Open</span></div>
+      <div class="inc-body"><div class="inc-cols">
+       <div>
+        <div class="viewer"><img id="d-img" alt="Incident evidence"><div id="d-badge" class="viewer-badge">SNAPSHOT</div><div class="viewer-progress"><i id="d-prog"></i></div></div>
+        <div class="viewer-controls"><button id="btn-snap" class="btn btn-quiet btn-xs on" onclick="showSnapshot()">▣ Snapshot</button><button id="btn-replay" class="btn btn-quiet btn-xs" onclick="startReplay()">▶ Replay</button><span id="d-evnote" class="note mono"></span></div>
+        <div id="d-facts" class="facts"></div>
+       </div>
+       <div><div id="d-dispatch"></div><div id="d-map" class="map-box"></div></div>
+      </div></div>
+      <div id="d-actions" class="inc-actions"></div>
+     </div>
+    </section>
+   </div>
+  </section>
+
+  <section id="view-audit" class="view">
+   <div class="flex flex-wrap items-end justify-between gap-3 mb-4"><div><div class="eyebrow mb-2">Operations / Traceability</div><h2 class="orbit text-lg text-white">EVENT <span class="text-cyan-300">INTELLIGENCE</span></h2><p class="text-[11px] text-slate-500 mt-2">Chronological operator actions and detection events.</p></div><button onclick="exportLog()" class="btn btn-primary">↓ Export audit report</button></div>
+   <section class="panel"><div class="px-5 py-4 border-b border-white/[.06] flex justify-between"><div><div class="orbit text-[10px] text-white">SYSTEM AUDIT TRAIL</div><div class="eyebrow mt-1">Live event journal</div></div><span id="event-count" class="cam-chip rounded-md px-2 py-1 mono text-[9px]">0 EVENTS</span></div><div id="audit-log-full" class="px-5 max-h-[650px] overflow-y-auto"><div class="py-6 text-xs text-slate-500">Awaiting system events…</div></div></section>
+  </section>
+
+  <footer class="flex flex-wrap justify-between gap-2 py-7 mono text-[8px] text-slate-700"><span>© 2026 COGNO VALLEY / CYBERPUNK VISION OS</span><span>LOCAL OPERATOR SESSION · BUILD 2.0.0</span></footer>
+ </main>
+</div>
+
+<script>
+const API_BASE="http://localhost:8000";
+const auditLogData=["COGNO VALLEY — SYSTEM AUDIT LOG","================================"];
+let currentCapacity=10,scanning=true,overlays=true,isCongested=false,latestHeadcount=0,chart=null,analyticsChart=null;
+const chartHistory={labels:[],values:[]};
+
+function updateClock(){const now=new Date();document.getElementById("clock").textContent=now.toLocaleTimeString();document.getElementById("feed-time").textContent=now.toLocaleTimeString("en-GB",{hour12:false})}
+updateClock();setInterval(updateClock,1000);
+
+function switchView(name){
+ document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));
+ document.querySelectorAll("[data-tab]").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
+ if(name==="analytics"&&analyticsChart)analyticsChart.resize();
+ if(name==="audit")document.getElementById("audit-log-full").scrollTop=0;
+ if(name==="incidents")refreshIncidents();
+}
+document.querySelectorAll("[data-tab]").forEach(el=>el.addEventListener("click",e=>{e.preventDefault();switchView(el.dataset.tab)}));
+
+async function apiCall(path){
+ try{const response=await fetch(API_BASE+path);if(!response.ok)throw new Error("HTTP "+response.status);return true}
+ catch(error){logEvent("CONNECTION","Backend request failed: "+error.message,"text-amber-300");return false}
+}
+async function toggleApi(endpoint,button){
+ const ok=await apiCall(endpoint);if(!ok)return;
+ if(endpoint.includes("toggle_scan")){
+  scanning=!scanning;button.innerHTML=scanning?"Ⅱ Pause scan":"▶ Resume scan";button.classList.toggle("btn-primary",scanning);button.classList.toggle("btn-quiet",!scanning);setSystemStatus(scanning);
+  logEvent("OPERATOR",scanning?"AI scanning resumed":"AI scanning paused","text-cyan-300");
+ }else{
+  overlays=!overlays;button.innerHTML=overlays?"◉ Hide overlays":"◎ Show overlays";logEvent("OPERATOR",overlays?"Vision overlays enabled":"Vision overlays hidden","text-violet-300");
+ }
+}
+function setSystemStatus(active){
+ const el=document.getElementById("system-status-indicator");
+ el.innerHTML=active?'<span class="live-dot"></span> SCANNING ACTIVE':'<span class="w-2 h-2 rounded-full bg-slate-500"></span> SYSTEM PAUSED';
+ el.className=active?"flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-300/20 bg-emerald-300/[.06] text-emerald-300 text-[9px] font-extrabold tracking-widest":"flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-400/20 bg-slate-400/[.06] text-slate-400 text-[9px] font-extrabold tracking-widest";
+}
+async function updateCapacity(value){
+ const ok=await apiCall("/api/set_capacity/"+value);if(!ok)return;
+ currentCapacity=Number(value);document.getElementById("capacity-display").textContent=value;document.getElementById("capacity-big").textContent=value;document.getElementById("threshold-value").textContent=value+" people";logEvent("SYSTEM","Operator updated zone capacity to "+value,"text-blue-300");
+}
+function exportLog(){
+ const blob=new Blob([auditLogData.join("\n")],{type:"text/plain"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="CV_Audit_Log_"+Date.now()+".txt";a.click();URL.revokeObjectURL(url);
+}
+function appendLog(target,type,message,colorClass,time){
+ const empty=target.querySelector(".text-slate-500");if(empty&&empty.textContent.includes("Awaiting"))empty.remove();
+ const item=document.createElement("div");item.className="log-item";
+ const header=document.createElement("div");header.className="flex items-center gap-2 mb-1.5";
+ const tag=document.createElement("span");tag.className="log-tag "+colorClass;tag.textContent=type;
+ const stamp=document.createElement("span");stamp.className="mono text-[9px] text-slate-600";stamp.textContent=time;
+ header.append(tag,stamp);const body=document.createElement("p");body.className="text-[10px] leading-relaxed text-slate-300";body.textContent=message;item.append(header,body);target.prepend(item);
+}
+function logEvent(type,message,colorClass){
+ const time=new Date().toLocaleTimeString();auditLogData.push("["+time+"] ["+type+"] "+message);
+ appendLog(document.getElementById("event-log"),type,message,colorClass,time);appendLog(document.getElementById("audit-log-full"),type,message,colorClass,time);
+ document.getElementById("event-count").textContent=(auditLogData.length-2)+" EVENTS";
+}
+function makeChart(canvasId){
+ const ctx=document.getElementById(canvasId).getContext("2d"),fill=ctx.createLinearGradient(0,0,0,300);fill.addColorStop(0,"rgba(85,237,255,.25)");fill.addColorStop(1,"rgba(85,237,255,0)");
+ return new Chart(ctx,{type:"line",data:{labels:chartHistory.labels,datasets:[{label:"Headcount",data:chartHistory.values,borderColor:"#55edff",backgroundColor:fill,borderWidth:2,fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:"#55edff"}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:450},plugins:{legend:{display:false},tooltip:{backgroundColor:"#0b1728",borderColor:"rgba(85,237,255,.3)",borderWidth:1,titleColor:"#aaf7ff",bodyColor:"#fff",displayColors:false}},scales:{x:{grid:{display:false},ticks:{color:"#647b98",maxTicksLimit:7,font:{family:"DM Mono",size:9}}},y:{beginAtZero:true,grid:{color:"rgba(148,163,184,.09)"},ticks:{color:"#647b98",precision:0,font:{family:"DM Mono",size:9}}}}}});
+}
+chart=makeChart("occupancyChart");analyticsChart=makeChart("analyticsChart");
+
+function updateMetrics(data){
+ const count=Number(data.headcount)||0,capacity=Number(data.capacity)||currentCapacity||10,percent=Math.min(count/Math.max(capacity,1)*100,100),warning=String(data.status||"").includes("WARNING")||count>=capacity;
+ latestHeadcount=count;currentCapacity=capacity;
+ const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+ set("headcount-display",count);set("occupancy-big",count);set("capacity-display",capacity);set("capacity-big",capacity);set("utilization-display",Math.round(percent)+"%");
+ set("analytics-headcount",count);set("analytics-capacity",capacity);set("analytics-utilization",Math.round(percent)+"%");
+ set("threshold-value",capacity+" people");set("percentage-label",Math.round(percent)+"% FULL");set("analytics-percent",Math.round(percent)+"%");
+ ["capacity-bar","analytics-bar"].forEach(id=>{const el=document.getElementById(id);el.style.width=percent+"%";el.style.background=warning?"linear-gradient(90deg,#ff5478,#ff9b78)":"linear-gradient(90deg,#557bff,#55edff)"});
+ ["status-label","analytics-status"].forEach(id=>{const el=document.getElementById(id);el.textContent=warning?"CAPACITY ALERT":"NORMAL FLOW";el.className=warning?"text-red-300":"text-cyan-300"});
+ set("zone-state",warning?"Limit reached":"Within limit");document.getElementById("zone-state").className=warning?"text-xs font-bold text-red-300 mt-1":"text-xs font-bold text-emerald-300 mt-1";
+ set("health-display",warning?"ALERT":"GOOD");document.getElementById("health-display").className=warning?"orbit text-2xl text-red-300":"orbit text-2xl text-emerald-300";
+ if(warning&&!isCongested){isCongested=true;logEvent("CRITICAL","Capacity threshold reached ("+count+"/"+capacity+")","text-red-300")}
+ if(!warning&&isCongested){isCongested=false;logEvent("RESOLVED","Occupancy returned within safe limits ("+count+"/"+capacity+")","text-emerald-300")}
+ if(typeof data.scanning==="boolean"){scanning=data.scanning;setSystemStatus(scanning)}
+ const time=new Date().toLocaleTimeString();chartHistory.labels.push(time);chartHistory.values.push(count);
+ if(chartHistory.labels.length>30){chartHistory.labels.shift();chartHistory.values.shift()}
+ chart.update("none");analyticsChart.update("none");
+ handleIncidentFields(data,warning,count,capacity);
+}
+function connectWebSocket(){
+ const ws=new WebSocket("ws://localhost:8000/ws/metrics");
+ ws.onopen=()=>logEvent("SYSTEM","Live metrics WebSocket connected","text-emerald-300");
+ ws.onmessage=event=>{try{updateMetrics(JSON.parse(event.data))}catch(e){logEvent("ERROR","Invalid metrics payload received","text-red-300")}};
+ ws.onerror=()=>{};
+ ws.onclose=()=>{setSystemStatus(false);setTimeout(connectWebSocket,3000)};
+}
+
+let incidents=[],incStats={total:0,open:0,critical_open:0,dispatched:0,resolved:0},selectedId=null,incVersion=null,incFilter="active",incInit=false,serverOffset=0,detail=null,viewerKey=null,replayTimer=null;
+const incMemo={};
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sevClass=s=>"s-"+String(s).toLowerCase();
+const sevText=s=>s==="Critical"?"text-red-300":s==="Warning"?"text-amber-300":"text-cyan-300";
+const fmtClock=ts=>new Date(ts*1000).toLocaleTimeString();
+const nowServer=()=>Date.now()/1000+serverOffset;
+const isActive=i=>i.status==="Open"||i.status==="Dispatched";
+const $=id=>document.getElementById(id);
+
+async function jget(path){const r=await fetch(API_BASE+path);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
+async function jpost(path,body){
+ const r=await fetch(API_BASE+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});
+ const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.detail||("HTTP "+r.status));return data;
+}
+
+async function refreshIncidents(){
+ try{
+  const data=await jget("/api/incidents?limit=100");
+  serverOffset=data.server_time-Date.now()/1000;
+  incidents=data.incidents;incStats=data.stats;
+  noteTransitions(incidents);
+  renderKpis();renderQueue();renderMini();renderPill();
+  if(selectedId!==null){
+   if(incidents.some(i=>i.id===selectedId))await loadDetail(selectedId);
+   else{selectedId=null;detail=null;renderDetailEmpty()}
+  }else if($("view-incidents").classList.contains("active")){
+   const first=sortedActive()[0];if(first)selectIncident(first.id);
+  }
+ }catch(e){}
+}
+function noteTransitions(list){
+ list.forEach(i=>{
+  const m=incMemo[i.id];
+  if(!m){if(incInit)logEvent("INCIDENT","#"+i.id+" "+i.severity+" — "+i.title+" ("+i.headcount+"/"+i.capacity+")",sevText(i.severity))}
+  else{
+   if(m.severity!==i.severity)logEvent("INCIDENT","#"+i.id+" escalated to "+i.severity+" ("+i.headcount+"/"+i.capacity+")",sevText(i.severity));
+   if(m.unit_state!==i.unit_state&&i.unit_state==="On scene")logEvent("DISPATCH",i.unit_name+" is on scene at #"+i.id,"text-cyan-300");
+   if(m.condition!==i.condition&&i.condition==="Cleared"&&isActive(i))logEvent("INCIDENT","#"+i.id+" condition cleared — awaiting operator review","text-emerald-300");
+  }
+  incMemo[i.id]={severity:i.severity,unit_state:i.unit_state,condition:i.condition};
+ });
+ incInit=true;
+}
+const sortedActive=()=>incidents.filter(isActive).sort((a,b)=>b.level-a.level||b.created_at-a.created_at);
+function visibleIncidents(){
+ if(incFilter==="active")return sortedActive();
+ if(incFilter==="closed")return incidents.filter(i=>!isActive(i));
+ return sortedActive().concat(incidents.filter(i=>!isActive(i)));
+}
+
+function renderPill(){
+ const pill=$("incident-pill"),n=incStats.open;
+ $("incident-pill-text").textContent=n?(n+" OPEN INCIDENT"+(n>1?"S":"")):"NO OPEN INCIDENTS";
+ pill.className="inc-pill"+(incStats.critical_open?" hot":n?" open":"");
+}
+function renderKpis(){
+ $("kpi-open").textContent=incStats.open;$("kpi-critical").textContent=incStats.critical_open;
+ $("kpi-dispatched").textContent=incStats.dispatched;$("kpi-closed").textContent=incStats.resolved;
+}
+function statusPill(i){return '<span class="st-pill st-'+i.status.toLowerCase()+'">'+esc(i.status)+'</span>'}
+function renderQueue(){
+ ["active","closed","all"].forEach(f=>$("chip-"+f).classList.toggle("active",f===incFilter));
+ const list=visibleIncidents(),box=$("incident-list");
+ if(!list.length){box.innerHTML='<div class="inc-empty"><b>'+(incFilter==="closed"?"NOTHING CLOSED YET":"ALL CLEAR")+'</b>'+(incFilter==="closed"?"Resolved and dismissed incidents appear here.":"No active incidents. Lower the zone capacity to simulate a breach.")+'</div>';return}
+ box.innerHTML=list.map(i=>
+  '<button class="inc-card '+sevClass(i.severity)+(i.id===selectedId?" selected":"")+(isActive(i)?"":" closed")+'" onclick="selectIncident('+i.id+')">'+
+  '<div class="ic-top"><span class="sev-tag '+sevClass(i.severity)+'">'+esc(i.severity)+'</span><span class="mono grow">#'+i.id+'</span><span class="mono">'+fmtClock(i.created_at)+'</span></div>'+
+  '<div class="ic-title">'+esc(i.title)+'</div>'+
+  '<div class="ic-meta mono">'+esc(i.zone)+' · '+i.headcount+'/'+i.capacity+' people · peak '+i.peak+'</div>'+
+  '<div class="ic-foot">'+statusPill(i)+(i.unit_name?'<span class="mono" style="font-size:9px;color:#9fb2cc">'+esc(i.unit_name)+' · '+esc(i.unit_state||"")+'</span>':'')+(i.condition==="Cleared"&&isActive(i)?'<span class="cleared-tag">● CONDITION CLEARED</span>':'')+'</div></button>').join("");
+}
+function renderMini(){
+ const act=sortedActive(),box=$("mini-incidents");
+ $("mini-count").textContent=act.length+" OPEN";
+ if(!act.length){box.innerHTML='<div class="py-5 text-xs text-slate-500">No active incidents. A capacity breach will appear here automatically.</div>';return}
+ box.innerHTML=act.slice(0,3).map(i=>'<button class="inc-mini" onclick="openIncident('+i.id+')"><span class="sev-tag '+sevClass(i.severity)+'">'+esc(i.severity)+'</span><span style="flex:1;min-width:0"><div class="ic-title">#'+i.id+' '+esc(i.title)+'</div><div class="ic-meta mono">'+i.headcount+'/'+i.capacity+' · '+esc(i.status)+'</div></span><span class="mono" style="font-size:9px;color:#6f819c">'+fmtClock(i.created_at)+'</span></button>').join("");
+}
+function setIncFilter(f){incFilter=f;renderQueue()}
+function openIncident(id){switchView("incidents");selectIncident(id)}
+function openLatestIncident(){
+ switchView("incidents");const a=sortedActive()[0];if(a)selectIncident(a.id);else refreshIncidents();
+}
+
+
+function selectIncident(id){selectedId=id;stopReplay();viewerKey=null;renderQueue();loadDetail(id)}
+async function loadDetail(id){
+ try{const p=await jget("/api/incidents/"+id);if(id!==selectedId)return;serverOffset=p.server_time-Date.now()/1000;renderDetail(p)}catch(e){}
+}
+function renderDetailEmpty(){$("incident-empty").style.display="block";$("incident-detail").style.display="none"}
+function renderDetail(p){
+ detail=p;const inc=p.incident;
+ $("incident-empty").style.display="none";$("incident-detail").style.display="block";
+ const sev=$("d-sev");sev.textContent=inc.severity;sev.className="sev-tag "+sevClass(inc.severity);
+ $("d-title").textContent=inc.title;$("d-id").textContent="#"+inc.id;
+ const st=$("d-status");st.textContent=inc.status;st.className="st-pill st-"+inc.status.toLowerCase();
+ const key=inc.id+":"+inc.evidence_ts;
+ if(key!==viewerKey){viewerKey=key;stopReplay();showSnapshot()}
+ $("d-evnote").textContent=inc.frames.length?("REPLAY · "+(inc.frames.length*0.25).toFixed(0)+" s BEFORE ALERT"):"NO REPLAY";
+ const fact=(k,v)=>'<div class="fact"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
+ $("d-facts").innerHTML=fact("Detected",fmtClock(inc.created_at))+fact("Camera / zone",esc(inc.camera)+" · "+esc(inc.zone))+
+  fact("Headcount / capacity",inc.headcount+" / "+inc.capacity)+fact("Peak headcount",inc.peak)+
+  fact("Crowd condition",inc.condition==="Cleared"?'<span style="color:#7cf5c6">Cleared</span>':'<span style="color:#ff9db3">Still active</span>')+
+  fact("Response",inc.unit_name?esc(inc.unit_name)+" · "+esc(inc.unit_state||"closed"):"No unit assigned");
+ renderDispatch(inc,p.units);renderMap(p);renderActions(inc);
+}
+function showSnapshot(){
+ stopReplay();if(!detail)return;const inc=detail.incident;
+ if(inc.snapshot_url)$("d-img").src=API_BASE+inc.snapshot_url;
+ $("d-badge").textContent="SNAPSHOT";$("d-badge").className="viewer-badge";$("d-prog").style.width="0";
+ $("btn-snap").classList.add("on");$("btn-replay").classList.remove("on");$("btn-replay").textContent="▶ Replay";
+}
+function startReplay(){
+ if(!detail)return;const frames=detail.incident.frames;if(!frames.length)return;
+ stopReplay();frames.forEach(u=>{const im=new Image();im.src=API_BASE+u});
+ let idx=0;$("d-badge").textContent="● REPLAY";$("d-badge").className="viewer-badge replay";
+ $("btn-snap").classList.remove("on");$("btn-replay").classList.add("on");$("btn-replay").textContent="■ Stop";
+ $("btn-replay").onclick=()=>{showSnapshot()};
+ replayTimer=setInterval(()=>{
+  $("d-img").src=API_BASE+frames[idx];$("d-prog").style.width=((idx+1)/frames.length*100)+"%";idx++;
+  if(idx>=frames.length){clearInterval(replayTimer);replayTimer=null;$("btn-replay").textContent="↻ Replay again";$("btn-replay").onclick=startReplay;$("d-badge").textContent="REPLAY ENDED"}
+ },250);
+}
+function stopReplay(){if(replayTimer){clearInterval(replayTimer);replayTimer=null}const b=$("btn-replay");if(b)b.onclick=startReplay}
+
+
+function unitRow(u,inc){
+ const free=u.state==="Available";
+ return '<div class="unit-row'+(free?"":" busy")+'"><span class="unit-dot t-'+u.type.toLowerCase()+'"></span><div class="unit-main"><div class="unit-name">'+esc(u.name)+'</div><div class="unit-sub mono">'+esc(u.base)+' · '+u.distance+' m</div></div>'+
+  (free&&inc.status==="Open"?'<button class="btn btn-quiet btn-xs" onclick="dispatchUnit('+inc.id+',\''+esc(u.id)+'\')">Assign · ETA '+u.eta_s+'s</button>':'<span class="unit-state '+u.state.toLowerCase().replace(" ","-")+'">'+esc(u.state)+'</span>')+'</div>';
+}
+function renderDispatch(inc,units){
+ const box=$("d-dispatch");
+ if(inc.status==="Open"){
+  const free=units.filter(u=>u.state==="Available").sort((a,b)=>a.distance-b.distance),n=free[0];
+  box.innerHTML='<div class="eyebrow mb-2">Dispatch unit</div>'+
+   (n?'<button class="btn btn-primary" style="width:100%" onclick="dispatchUnit('+inc.id+')">⚡ Dispatch nearest — '+esc(n.name)+' · ETA '+n.eta_s+'s</button>':'<div class="note-line">No units available right now.</div>')+
+   '<div style="margin-top:12px">'+units.map(u=>unitRow(u,inc)).join("")+'</div>';
+ }else if(inc.status==="Dispatched"){
+  box.innerHTML='<div class="assign-card"><div class="eyebrow">Assignment</div><div class="big">'+esc(inc.unit_name)+'</div><div class="mono" style="font-size:10px;color:#9fb2cc">Dispatched '+fmtClock(inc.dispatched_at)+' · <span id="d-unit-state">'+esc(inc.unit_state)+'</span></div>'+
+   '<div class="eta-row"><span class="eyebrow">Time to arrival</span><span id="d-eta" class="eta">--</span></div><div class="eta-track"><i id="d-eta-bar"></i></div></div>';
+  tickAssignment();
+ }else{
+  box.innerHTML='<div class="eyebrow mb-2">Outcome</div><div class="note-line">'+esc(inc.note||inc.status)+(inc.unit_name?'<br>Unit assigned: '+esc(inc.unit_name):'')+'</div>';
+ }
+}
+function renderActions(inc){
+ const box=$("d-actions");
+ box.innerHTML=isActive(inc)?'<button class="btn btn-quiet" onclick="closeIncident('+inc.id+',\'resolve\')">✓ Mark resolved</button><button class="btn btn-danger" onclick="closeIncident('+inc.id+',\'dismiss\')">✕ False alarm</button>':'<span class="note-line">This incident is closed.</span>';
+}
+async function dispatchUnit(id,unitId){
+ try{const r=await jpost("/api/incidents/"+id+"/dispatch",unitId?{unit_id:unitId}:{});
+  logEvent("OPERATOR","Dispatched "+r.incident.unit_name+" to incident #"+id+" (ETA "+r.incident.eta_s+"s)","text-cyan-300");
+  await refreshIncidents();
+ }catch(e){logEvent("ERROR","Dispatch failed: "+e.message,"text-amber-300")}
+}
+async function closeIncident(id,action){
+ try{await jpost("/api/incidents/"+id+"/"+action);
+  logEvent("OPERATOR","Incident #"+id+(action==="resolve"?" marked resolved":" dismissed as false alarm"),action==="resolve"?"text-emerald-300":"text-violet-300");
+  await refreshIncidents();
+ }catch(e){logEvent("ERROR","Action failed: "+e.message,"text-amber-300")}
+}
+async function resetIncidents(){
+ if(!confirm("Delete all incidents, evidence and server audit events? (demo reset)"))return;
+ try{await jpost("/api/incidents/reset");selectedId=null;detail=null;viewerKey=null;Object.keys(incMemo).forEach(k=>delete incMemo[k]);incInit=false;renderDetailEmpty();logEvent("OPERATOR","Incident data reset for a fresh demo","text-violet-300");await refreshIncidents();incInit=true}
+ catch(e){logEvent("ERROR","Reset failed: "+e.message,"text-amber-300")}
+}
+function exportIncidents(){
+ const rows=[["id","detected","severity","title","zone","camera","headcount","capacity","peak","status","unit","note"]];
+ incidents.slice().reverse().forEach(i=>rows.push([i.id,new Date(i.created_at*1000).toISOString(),i.severity,i.title,i.zone,i.camera,i.headcount,i.capacity,i.peak,i.status,i.unit_name||"",i.note||""]));
+ const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="incident_report.csv";a.click();URL.revokeObjectURL(a.href);
+ logEvent("EXPORT","Incident report exported ("+incidents.length+" incidents)","text-violet-300");
+}
+
+/* ---- floor map (units move toward the incident while 'En route') ---- */
+const UNIT_COLOR={Security:"#55edff",Medical:"#52f5b4",Response:"#a77bff"};
+function unitPos(u,inc,ip){
+ if(inc.status==="Dispatched"&&inc.unit_id===u.id){
+  const pr=Math.max(0,Math.min(1,(nowServer()-inc.dispatched_at)/Math.max(inc.eta_s,1)));
+  return {x:u.x+(ip.x-u.x)*pr,y:u.y+(ip.y-u.y)*pr};
+ }
+ return {x:u.x,y:u.y};
+}
+function renderMap(p){
+ const inc=p.incident,ip=p.incident_pos;let g="";
+ p.units.forEach(u=>{
+  g+='<rect x="'+(u.x-3.2)+'" y="'+(u.y-2.6)+'" width="6.4" height="5.2" rx="1" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width=".3"/>'+
+     '<text x="'+u.x+'" y="'+(u.y+6.6)+'" text-anchor="middle" font-size="2.3" fill="#6f819c">'+esc(u.base)+'</text>';
+ });
+ if(inc.status==="Dispatched"){const u=p.units.find(x=>x.id===inc.unit_id);if(u)g+='<line x1="'+u.x+'" y1="'+u.y+'" x2="'+ip.x+'" y2="'+ip.y+'" stroke="#557bff" stroke-width=".5" stroke-dasharray="1.6 1.2"/>'}
+ const pin=inc.severity==="Critical"?"#ff5478":inc.severity==="Warning"?"#ffc66d":"#55edff";
+ g+='<circle cx="'+ip.x+'" cy="'+ip.y+'" r="4" fill="'+pin+'" opacity=".18"><animate attributeName="r" values="3;9;3" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".3;0;.3" dur="2s" repeatCount="indefinite"/></circle><circle cx="'+ip.x+'" cy="'+ip.y+'" r="2" fill="'+pin+'"/><text x="'+ip.x+'" y="'+(ip.y-4.2)+'" text-anchor="middle" font-size="2.6" font-weight="700" fill="#fff">INCIDENT #'+inc.id+'</text>';
+ p.units.forEach(u=>{
+  const pos=unitPos(u,inc,ip),mine=inc.unit_id===u.id&&inc.status==="Dispatched";
+  g+='<g id="um-'+esc(u.id)+'" transform="translate('+pos.x+' '+pos.y+')"><circle r="2.3" fill="'+UNIT_COLOR[u.type]+'" stroke="'+(mine?"#fff":"rgba(0,0,0,.4)")+'" stroke-width=".5" opacity="'+(u.state==="Available"||mine?1:.45)+'"/><text y="-3.4" text-anchor="middle" font-size="2.3" fill="#e9f5ff">'+esc(u.id)+'</text></g>';
+ });
+ $("d-map").innerHTML='<svg viewBox="0 0 100 92" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Campus floor plan with incident and response units"><defs><pattern id="mgrid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="rgba(85,237,255,.08)" stroke-width=".3"/></pattern></defs><rect width="100" height="92" fill="url(#mgrid)"/><rect x="38" y="36" width="28" height="24" rx="3" fill="rgba(85,237,255,.05)" stroke="rgba(85,237,255,.28)" stroke-dasharray="1.5 1.5" stroke-width=".4"/><text x="52" y="64.4" text-anchor="middle" font-size="2.4" fill="#7f91ad">ZONE A · PLAZA</text>'+g+'</svg>';
+}
+function tickAssignment(){
+ if(!detail)return;const inc=detail.incident;if(inc.status!=="Dispatched")return;
+ const remaining=Math.max(0,Math.ceil(inc.dispatched_at+inc.eta_s-nowServer())),pr=Math.max(0,Math.min(1,(nowServer()-inc.dispatched_at)/Math.max(inc.eta_s,1)));
+ const eta=$("d-eta");if(eta)eta.textContent=remaining>0?("00:"+String(remaining).padStart(2,"0")):"ON SCENE";
+ const bar=$("d-eta-bar");if(bar)bar.style.width=(pr*100)+"%";
+ const stt=$("d-unit-state");if(stt)stt.textContent=remaining>0?"En route":"On scene";
+ const u=detail.units.find(x=>x.id===inc.unit_id),mk=u&&$("um-"+u.id);
+ if(mk){const pos=unitPos(u,inc,detail.incident_pos);mk.setAttribute("transform","translate("+pos.x+" "+pos.y+")")}
+}
+setInterval(tickAssignment,500);
+
+function handleIncidentFields(data,warning,count,capacity){
+ const show=warning&&data.scanning!==false;
+ $("alert-banner").classList.toggle("show",show);
+ if(show)$("banner-text").textContent="Zone A is at "+count+" / "+capacity+" people — capacity limit reached. An incident has been raised for operator review.";
+ if(typeof data.fps==="number"){$("perf-display").textContent=data.scanning===false?"AI VISION PAUSED":("AI VISION · "+data.fps.toFixed(1)+" FPS · "+Math.round(data.inference_ms)+" ms")}
+ if(typeof data.incident_version==="number"&&data.incident_version!==incVersion){incVersion=data.incident_version;refreshIncidents()}
+}
+refreshIncidents();
+
+logEvent("SYSTEM","Cyberpunk Vision OS initialized. Connecting to vision engine…","text-emerald-300");
+connectWebSocket();
+
+(function(){
+ const canvas=document.getElementById("particleCanvas"),ctx=canvas.getContext("2d");let w,h,particles=[];
+ function resize(){w=canvas.width=innerWidth*devicePixelRatio;h=canvas.height=innerHeight*devicePixelRatio;canvas.style.width=innerWidth+"px";canvas.style.height=innerHeight+"px";particles=Array.from({length:Math.min(75,Math.floor(innerWidth/18))},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.18,vy:(Math.random()-.5)*.18,r:Math.random()*1.4+.3}))}
+ function draw(){ctx.clearRect(0,0,w,h);for(let i=0;i<particles.length;i++){const p=particles[i];p.x+=p.vx*devicePixelRatio;p.y+=p.vy*devicePixelRatio;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;ctx.fillStyle="rgba(85,237,255,.55)";ctx.beginPath();ctx.arc(p.x,p.y,p.r*devicePixelRatio,0,Math.PI*2);ctx.fill();for(let j=i+1;j<particles.length;j++){const q=particles[j],dx=p.x-q.x,dy=p.y-q.y,d=Math.hypot(dx,dy);if(d<125*devicePixelRatio){ctx.strokeStyle="rgba(85,237,255,"+(1-d/(125*devicePixelRatio))*.09+")";ctx.lineWidth=devicePixelRatio;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}}}requestAnimationFrame(draw)}
+ addEventListener("resize",resize);resize();draw();
+})();
+</script>
+</body>
+</html>
